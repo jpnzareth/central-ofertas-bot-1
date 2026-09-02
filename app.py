@@ -65,6 +65,38 @@ def teste_api():
         "funcionou": response.status_code == 200
     }), response.status_code
 
+@app.route("/produto/<item_id>")
+def produto(item_id):
+    token = app.config.get("ML_ACCESS_TOKEN")
+
+    if not token:
+        return jsonify({
+            "erro": "Nenhum token disponível. Faça a autorização novamente."
+        }), 401
+
+    response = requests.get(
+        f"https://api.mercadolibre.com/items/{item_id}",
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=15,
+    )
+
+    if response.status_code != 200:
+        return jsonify({
+            "funcionou": False,
+            "status_api": response.status_code
+        }), response.status_code
+
+    dados = response.json()
+
+    return jsonify({
+        "funcionou": True,
+        "id": dados.get("id"),
+        "titulo": dados.get("title"),
+        "preco": dados.get("price"),
+        "preco_original": dados.get("original_price"),
+        "disponivel": dados.get("available_quantity"),
+        "link": dados.get("permalink")
+    }), 200
 
 @app.route("/notifications", methods=["POST"])
 def notifications():
